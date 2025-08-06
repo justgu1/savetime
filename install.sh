@@ -59,8 +59,10 @@ fi
 
 # Step 3: Set permissions
 echo -e "${GREEN}⚙️ Setting file permissions...${RESET}"
-sudo chown -R savetime:savetime ./core
-sudo chmod +x ./core/commands/sv
+
+# Change owner to actually user
+CURRENT_USER=$(whoami)
+sudo chown -R $CURRENT_USER:$CURRENT_USER ./core
 
 # Step 4: Copy .env
 if [[ -f "./core/.env.example" ]]; then
@@ -70,10 +72,16 @@ else
   echo -e "${RED}❌ ./core/.env.example not found. Skipping .env setup.${RESET}"
 fi
 
-# Step 5: Create global 'sv' command
-echo -e "${YELLOW}🔗 Creating global command 'sv'...${RESET}"
-sudo ln -sf "$(pwd)/core/commands/sv" /usr/local/bin/sv
-sudo chmod +x /usr/local/bin/sv
-echo -e "${GREEN}✔ 'sv' command is now available globally.${RESET}"
+# Step 5: Create global 'st' command
+echo -e "${YELLOW}🔗 Creating global command 'st'...${RESET}"
 
-echo -e "${GREEN}✅ Installation complete! You can now use the 'sv' command to start your workspace.${RESET}"
+sudo rm -f /usr/local/bin/st
+sudo ln -sf "$(pwd)/core/st" /usr/local/bin/st
+
+if [[ -f "/usr/local/bin/st" ]]; then
+  sudo chmod +x /usr/local/bin/st
+else
+  echo -e "${RED}❌ Failed to create /usr/local/bin/st symlink.${RESET}"
+fi
+
+echo -e "${GREEN}✔ 'st' command is now available globally.${RESET}"
