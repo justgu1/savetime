@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: savetime-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/log:/var/log/nginx
+      - ./www:/var/www/html
+    networks:
+      - savetime
+
+  db:
+    image: postgres:15-alpine
+    container_name: savetime-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: savetime
+      POSTGRES_PASSWORD: savetimepassword
+      POSTGRES_DB: savetime_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - savetime
+
+  redis:
+    image: redis:7-alpine
+    container_name: savetime-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - savetime
+
+  mailpit:
+    image: mailpit/mailpit
+    container_name: savetime-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - savetime
+
+  minio:
+    image: minio/minio
+    container_name: savetime-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadminpassword
+    command: server /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - miniodata:/data
+    networks:
+      - savetime
+
+networks:
+  savetime:
+    name: savetime
+    driver: bridge
+
+volumes:
+  pgdata:
+  miniodata:
