@@ -12,31 +12,40 @@ echo -e "${GREEN}🚀 Starting SaveTime CLI installation...${RESET}"
 
 # Function to check and install a required package
 check_or_install() {
-  local pkg=$1
-  local url=$2
-  if ! command -v "$pkg" &> /dev/null; then
-    echo -e "${YELLOW}🔍 $pkg not found. Attempting to install...${RESET}"
+  local cmd_check=$1
+  local pkg_name=$2
+  local url=$3
+
+  if ! command -v "$cmd_check" &> /dev/null; then
+    echo -e "${YELLOW}🔍 $pkg_name not found. Attempting to install...${RESET}"
     if [[ "$OSTYPE" == "linux-gnu"* ]]; then
       sudo apt update
-      sudo apt install -y "$pkg" || echo -e "${RED}❌ Failed to install $pkg. Please install it manually: $url${RESET}"
+      sudo apt install -y "$pkg_name" || echo -e "${RED}❌ Failed to install $pkg_name. Please install it manually: $url${RESET}"
     elif [[ "$OSTYPE" == "darwin"* ]]; then
       if ! command -v brew &> /dev/null; then
-        echo -e "${RED}❌ Homebrew is required to install $pkg. Please install Homebrew first: https://brew.sh${RESET}"
+        echo -e "${RED}❌ Homebrew is required to install $pkg_name. Please install Homebrew first: https://brew.sh${RESET}"
         return
       fi
-      brew install "$pkg" || echo -e "${RED}❌ Failed to install $pkg. Please install it manually: $url${RESET}"
+      brew install "$pkg_name" || echo -e "${RED}❌ Failed to install $pkg_name. Please install it manually: $url${RESET}"
     else
       echo -e "${RED}❌ Unsupported OS. Please install $pkg manually: $url${RESET}"
     fi
   else
-    echo -e "${GREEN}✔ $pkg is already installed.${RESET}"
+    echo -e "${GREEN}✔ $pkg_name is already installed.${RESET}"
   fi
 }
 
 # Step 1: Check dependencies
-check_or_install git "https://git-scm.com/downloads"
-check_or_install docker "https://docs.docker.com/get-docker/"
-check_or_install docker-compose "https://docs.docker.com/compose/install/"
+check_or_install git git "https://git-scm.com/downloads"
+check_or_install docker docker "https://docs.docker.com/get-docker/"
+
+# Check for docker compose (subcommand)
+if docker compose version &>/dev/null; then
+  echo -e "${GREEN}✔ Docker Compose is available as a Docker subcommand.${RESET}"
+else
+  echo -e "${RED}❌ Docker Compose (subcommand) is not available.${RESET}"
+  echo -e "${YELLOW}👉 Please install or update Docker: https://docs.docker.com/get-docker/${RESET}"
+fi
 
 # Step 2: Create 'savetime' user if it doesn't exist
 if id "savetime" &>/dev/null; then
